@@ -68,7 +68,7 @@ NODE_ENV=production npm start    # API + client on http://localhost:5000
 
 ### Docker
 
-`docker-compose.yml` runs the production image (API + built client) on http://localhost:5000 next to a MongoDB 9 container with a named volume.
+`docker-compose.yml` runs the production image (API + built client) on <http://localhost:5000> next to a MongoDB 9 container with a named volume.
 
 ```bash
 cp server/.env.example server/.env   # fill JWT_SECRET, JWT_SALT_ROUNDS, EMAIL_*; compose sets DB_CONNECTION_STRING and PORT

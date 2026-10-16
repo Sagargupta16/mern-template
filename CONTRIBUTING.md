@@ -35,7 +35,7 @@ npm ci --ignore-scripts
 node --check index.js
 ```
 
-Docker (runs after both pass; nothing is pushed). CI writes a throwaway `server/.env`, starts the compose stack with `docker compose up -d --build --wait`, then checks `/health`, the client at `/` and a 401 from `/token-check`:
+Docker (runs after both pass; nothing is pushed). CI creates an empty `server/.env`, starts the compose stack with `docker compose up -d --build --wait`, then checks `/health`, the client at `/` and a 401 from `/token-check`:
 
 ```bash
 docker build -t mern-template .

@@ -45,16 +45,10 @@ jobs:
     needs: [client, server]
     steps:
       - uses: actions/checkout@v7
-      # Throwaway values for the smoke test only; compose overrides DB_CONNECTION_STRING and PORT
-      - name: Write CI server/.env
-        run: |
-          cat > server/.env <<'EOF'
-          JWT_SECRET=ci-smoke-only
-          JWT_SALT_ROUNDS=4
-          EMAIL_ID=ci@example.com
-          EMAIL_PASSWORD=unused
-          CORS_ORIGINS=http://localhost:5000
-          EOF
+      # compose's env_file needs server/.env to exist; the smoke test needs none of its values,
+      # since compose sets DB_CONNECTION_STRING and PORT and /token-check rejects before using JWT_SECRET
+      - name: Create an empty server/.env
+        run: touch server/.env
       - name: Build and start the compose stack (waits for healthy)
         run: docker compose up -d --build --wait --wait-timeout 180
       - name: Smoke test (/health, SPA at /, 401 on /token-check)
