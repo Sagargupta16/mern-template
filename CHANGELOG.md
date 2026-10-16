@@ -3,7 +3,7 @@
 ## [2.1.0] - 2026-10-16
 
 - Add `GET /health` (no database access) and production static serving: with `NODE_ENV=production`, Express serves `client/dist` with an SPA fallback
-- Add a multi-stage `Dockerfile` (Node 24 alpine, non-root, healthcheck) and `docker-compose.yml` with MongoDB; CI now builds the image
+- Add a multi-stage `Dockerfile` (Node 24 alpine, non-root, healthcheck) and `docker-compose.yml` with MongoDB; CI now starts the compose stack until healthy and smoke-tests `/health`, the client at `/` and `/token-check`
 - Rate limit every `/users` route and `/token-check`, not just update and delete
 - Reject a non-string or blank `name` on `PUT /users/update/:id` with 400 (NoSQL operator injection)
 - Strip control characters from user-controlled values in log lines (log injection)

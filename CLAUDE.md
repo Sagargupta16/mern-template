@@ -35,7 +35,7 @@ docker compose up -d --build     # same production build in a container + mongo:
 
 ## Test
 
-No test suite. CI (`.github/workflows/ci.yml`) runs: client `npm ci --ignore-scripts`, `npm run lint` (ESLint 10 flat config), `npm run build`; server `npm ci --ignore-scripts`, `node --check index.js`; then `docker build` once both pass. Root has Prettier with organize-imports.
+No test suite. CI (`.github/workflows/ci.yml`) runs: client `npm ci --ignore-scripts`, `npm run lint` (ESLint 10 flat config), `npm run build`; server `npm ci --ignore-scripts`, `node --check index.js`; then, once both pass, `docker compose up --build --wait` with a throwaway `server/.env` and curls `/health`, `/` and `/token-check` (401). Root has Prettier with organize-imports.
 
 ## Entry points
 
