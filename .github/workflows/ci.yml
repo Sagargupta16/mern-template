@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   client:
     runs-on: ubuntu-latest
@@ -17,7 +20,7 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: client/package-lock.json
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run lint
       - run: npm run build
 
@@ -33,5 +36,31 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: server/package-lock.json
-      - run: npm ci
+      # bcrypt ships prebuilt binaries (glibc and musl), so its install script is not needed
+      - run: npm ci --ignore-scripts
       - run: node --check index.js
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [client, server]
+    steps:
+      - uses: actions/checkout@v7
+      # compose's env_file needs server/.env to exist; the smoke test needs none of its values,
+      # since compose sets DB_CONNECTION_STRING and PORT and /token-check rejects before using JWT_SECRET
+      - name: Create an empty server/.env
+        run: touch server/.env
+      - name: Build and start the compose stack (waits for healthy)
+        run: docker compose up -d --build --wait --wait-timeout 180
+      - name: Smoke test (/health, SPA at /, 401 on /token-check)
+        run: |
+          curl -fsS http://127.0.0.1:5000/health
+          curl -fsS http://127.0.0.1:5000/ | grep -q '<div id="root">'
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:5000/token-check)
+          echo "token-check without a token: $code"
+          test "$code" = "401"
+      - name: Compose logs on failure
+        if: failure()
+        run: docker compose logs
+      - name: Stop the stack
+        if: always()
+        run: docker compose down -v

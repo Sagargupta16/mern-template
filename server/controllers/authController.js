@@ -5,7 +5,7 @@ import nodemailer from 'nodemailer';
 
 import Otp from '../models/Otp.js';
 import User from '../models/User.js';
-import logger from '../utils/logger.js';
+import logger, { sanitizeLog } from '../utils/logger.js';
 
 // Coerce body params to primitive strings to block NoSQL operator injection
 // (e.g. { email: { $gt: "" } } which would otherwise bypass findOne)
@@ -33,7 +33,7 @@ export const postSignup = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, Number(process.env.JWT_SALT_ROUNDS));
     await new User({ name, email, password: hashedPassword }).save();
-    logger.info(`New user created: ${email}`);
+    logger.info(`New user created: ${sanitizeLog(email)}`);
 
     res.status(201).json({ messages: ['User created successfully'] });
   } catch (error) {
@@ -62,7 +62,7 @@ export const getLogin = async (req, res) => {
       { expiresIn: '7d' },
     );
 
-    logger.info(`User logged in: ${email}`);
+    logger.info(`User logged in: ${sanitizeLog(email)}`);
     res.json({ status: true, data: { token }, messages: ['Login Successful'] });
   } catch (error) {
     logger.error(error);
@@ -83,7 +83,7 @@ export const postVerifyEmail = async (req, res) => {
 
     const otp = String(crypto.randomInt(100000, 999999));
     await new Otp({ email, otp }).save();
-    logger.info(`OTP generated for ${email}`);
+    logger.info(`OTP generated for ${sanitizeLog(email)}`);
 
     const transporter = nodemailer.createTransport({
       service: process.env.EMAIL_SERVICE || 'gmail',
@@ -125,7 +125,7 @@ export const postVerifyOTP = async (req, res) => {
     const otpAge = Date.now() - new Date(existingOtp.createdAt).getTime();
     if (otpAge > 10 * 60 * 1000) return res.status(401).json({ status: false, errors: ['OTP expired'] });
 
-    logger.info(`User verified: ${email}`);
+    logger.info(`User verified: ${sanitizeLog(email)}`);
     res.status(200).json({ status: true, messages: ['Email verified successfully'] });
   } catch (error) {
     logger.error(error);
@@ -161,7 +161,7 @@ export const postResetPassword = async (req, res) => {
     await user.save();
     await Otp.findByIdAndDelete(existing._id);
 
-    logger.info(`Password reset for ${email}`);
+    logger.info(`Password reset for ${sanitizeLog(email)}`);
     res.status(200).json({ status: true, messages: ['Password reset successfully'] });
   } catch (error) {
     logger.error(error);

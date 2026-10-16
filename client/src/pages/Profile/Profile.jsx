@@ -15,15 +15,11 @@ const Profile = () => {
 
 	useEffect(() => {
 		const fetchUser = async () => {
-			try {
-				const user = await getUserData();
-				setUser(user);
-				setPrevUser(user);
-			} catch (err) {
-				console.log(err);
-			}
+			const user = await getUserData();
+			setUser(user);
+			setPrevUser(user);
 		};
-		fetchUser();
+		fetchUser().catch((err) => console.log(err));
 	}, []);
 
 	const handleInputChange = (name, value) => {

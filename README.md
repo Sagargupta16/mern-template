@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Sagargupta16/mern-template/actions/workflows/ci.yml/badge.svg)](https://github.com/Sagargupta16/mern-template/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node](https://img.shields.io/badge/node-%3E%3D22-brightgreen)](https://nodejs.org)
+[![Node](https://img.shields.io/badge/node-%3E%3D24-brightgreen)](https://nodejs.org)
 
 A full-stack web application template using the MERN stack with JWT authentication, OTP email verification, and rate limiting.
 
@@ -16,18 +16,19 @@ A full-stack web application template using the MERN stack with JWT authenticati
 
 - JWT authentication with 7-day token expiry
 - OTP-based email verification and password reset
-- Rate limiting on sensitive endpoints
+- Rate limiting on every endpoint that touches the database (100 requests per IP per 5 minutes)
 - MVC architecture (models, controllers, routes)
 - Protected routes on both frontend and backend
 - Winston structured logging
 - ESM modules throughout (no CommonJS)
+- Docker image and Compose stack with MongoDB, `/health` endpoint for healthchecks
 
 ## Quick Start
 
 ### Prerequisites
 
-- Node.js 22+
-- MongoDB (local or Atlas)
+- Node.js 24+ (`.nvmrc`)
+- MongoDB (local or Atlas), or Docker for the Compose stack below
 
 ### Setup
 
@@ -55,6 +56,28 @@ npm run server
 # Frontend only
 npm run client
 ```
+
+### Production build
+
+With `NODE_ENV=production`, Express serves the built client from `client/dist` (with an SPA fallback to `index.html`) next to the API, all on one port.
+
+```bash
+npm run build                    # builds client/dist
+NODE_ENV=production npm start    # API + client on http://localhost:5000
+```
+
+### Docker
+
+`docker-compose.yml` runs the production image (API + built client) on <http://localhost:5000> next to a MongoDB 9 container with a named volume.
+
+```bash
+cp server/.env.example server/.env   # fill JWT_SECRET, JWT_SALT_ROUNDS, EMAIL_*; compose sets DB_CONNECTION_STRING and PORT
+docker compose up -d --build
+curl http://localhost:5000/health    # {"status":"ok"}
+docker compose down                  # add -v to also delete the MongoDB volume
+```
+
+The `Dockerfile` is multi-stage on `node:24-alpine`: it builds the client, installs server production dependencies with `npm ci --omit=dev --ignore-scripts`, and runs as the non-root `node` user with `NODE_ENV=production` and a `HEALTHCHECK` on `/health`. The client bundle calls `VITE_API_URL` if it was set at build time (for example in a committed `client/.env.production`), otherwise `http://localhost:5000`, so keep the `5000:5000` port mapping or set it.
 
 ## Project Structure
 
@@ -89,6 +112,8 @@ MERN-TEMPLATE/
 │   ├── .env.example            # Environment template
 │   └── package.json
 │
+├── Dockerfile                  # Multi-stage production image
+├── docker-compose.yml          # App + MongoDB stack
 └── package.json                # Root scripts (concurrently)
 ```
 
@@ -108,16 +133,18 @@ MERN-TEMPLATE/
 
 | Method | Path | Rate Limited | Description |
 |--------|------|:---:|-------------|
-| GET | `/users/view` | No | Get all users |
-| GET | `/users/view/:id` | No | Get user by ID |
-| PUT | `/users/update/:id` | Yes | Update user |
+| GET | `/users/view` | Yes | Get all users |
+| GET | `/users/view/:id` | Yes | Get user by ID |
+| PUT | `/users/update/:id` | Yes | Update user (`name` must be a non-empty string) |
 | DELETE | `/users/delete/:id` | Yes | Delete user |
 
 ### Other
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/token-check` | Verify JWT validity |
+| Method | Path | Rate Limited | Description |
+|--------|------|:---:|-------------|
+| GET | `/token-check` | Yes | Verify JWT validity |
+| GET | `/health` | No | Liveness probe, returns `{ "status": "ok" }` without touching the database |
+| GET | `/*` | Yes | Production only: serves `client/dist`, falling back to `index.html` |
 
 ## Environment Variables
 
@@ -128,6 +155,8 @@ See `server/.env.example` for all required variables:
 - `JWT_SALT_ROUNDS` -- bcrypt salt rounds (default: 10)
 - `EMAIL_ID` / `EMAIL_PASSWORD` -- Email credentials for OTP
 - `CORS_ORIGINS` -- Allowed frontend origins
+
+Optional: `PORT` (default 5000) and `NODE_ENV` (`production` makes Express serve `client/dist`; the Docker image sets it).
 
 ## License
 

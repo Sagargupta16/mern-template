@@ -1,6 +1,6 @@
 {
   "name": "mern-template",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "private": true,
   "license": "MIT",
   "scripts": {
@@ -13,7 +13,7 @@
     "install-all": "npm install && cd server && npm install && cd ../client && npm install"
   },
   "devDependencies": {
-    "concurrently": "^10.0.3",
+    "concurrently": "^10.0.6",
     "prettier": "^3.4.0",
     "prettier-plugin-organize-imports": "^4.0.0"
   }
