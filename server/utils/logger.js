@@ -12,4 +12,9 @@ const logger = winston.createLogger({
   ],
 });
 
+// Replace control characters (CR, LF, ANSI escapes) and Unicode line separators in
+// user-controlled values before they are interpolated into a log line, so crafted
+// input cannot forge extra log entries (log injection).
+export const sanitizeLog = (value) => String(value).replaceAll(/[\p{Cc}\u2028\u2029]/gu, ' ');
+
 export default logger;

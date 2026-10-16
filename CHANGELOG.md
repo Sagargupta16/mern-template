@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.1.0] - 2026-10-16
+
+- Add `GET /health` (no database access) and production static serving: with `NODE_ENV=production`, Express serves `client/dist` with an SPA fallback
+- Add a multi-stage `Dockerfile` (Node 24 alpine, non-root, healthcheck) and `docker-compose.yml` with MongoDB; CI now builds the image
+- Rate limit every `/users` route and `/token-check`, not just update and delete
+- Reject a non-string or blank `name` on `PUT /users/update/:id` with 400 (NoSQL operator injection)
+- Strip control characters from user-controlled values in log lines (log injection)
+- CI: least-privilege `permissions: contents: read`, `npm ci --ignore-scripts`
+- Forgot-password modal: drop `autoFocus` and stop remounting the input on every keystroke
+- Bump `concurrently` to 10.0.6 (patched `shell-quote`); align root, server and client versions on 2.1.0; document Node 24
+
 ## [2.0.0] - 2026-03-14
 
 - Migrate CRA to Vite, convert backend to full ESM

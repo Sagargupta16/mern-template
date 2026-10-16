@@ -8,7 +8,9 @@ const Modal = ({ isOpen, onClose, onConfirm, message, buttonTitle, HasInput = nu
 		<div className="overlay">
 			<div className={classes.modal}>
 				<p>{message}</p>
-				{HasInput && <HasInput />}
+				{/* Called as a render function, not mounted as <HasInput />: callers pass a new
+				    function on every render, which would remount the input and drop focus on each keystroke */}
+				{HasInput?.()}
 				<div className={classes['modal__buttons']}>
 					<button className="btn btn-danger" onClick={onConfirm}>
 						{buttonTitle}

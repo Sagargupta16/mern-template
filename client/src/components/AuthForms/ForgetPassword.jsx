@@ -81,7 +81,6 @@ const ForgetPassword = () => {
 					}}
 					value={inputValue}
 					id="input"
-					autoFocus
 				/>
 				{counter === 2 && (
 					<button className={classes['password-toggle']} onClick={() => setShowPassword(!showPassword)}>

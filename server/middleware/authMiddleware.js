@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 import User from '../models/User.js';
-import logger from '../utils/logger.js';
+import logger, { sanitizeLog } from '../utils/logger.js';
 
 export const authenticateUser = async (req, res, next) => {
   try {
@@ -16,10 +16,11 @@ export const authenticateUser = async (req, res, next) => {
 
     req.token = token;
     req.user = user;
-    logger.info(`User ${user.email} authenticated`);
+    logger.info(`User ${sanitizeLog(user.email)} authenticated`);
     next();
   } catch (error) {
-    logger.error(error.message);
+    // A token with a non-JSON payload surfaces a JSON.parse message that echoes part of the token
+    logger.error(sanitizeLog(error.message));
     if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
       res.status(401).json({ message: 'Unauthorized: Invalid or expired token' });
     } else {

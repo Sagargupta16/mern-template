@@ -31,10 +31,18 @@ export const updateUser = async (req, res) => {
 
     // Whitelist editable fields (prevents mass-assignment of email/password/role).
     // Password changes go through the dedicated reset flow in authController.
+    // Only plain strings reach the update document: an object such as { "$gt": "" } or an
+    // operator payload would otherwise be passed to Mongo as-is (NoSQL injection).
     const updates = {};
-    if (req.body.name !== undefined) updates.name = req.body.name;
+    const { name } = req.body;
+    if (name !== undefined) {
+      if (typeof name !== 'string' || !name.trim()) {
+        return res.status(400).json({ errors: ['Name must be a non-empty string'] });
+      }
+      updates.name = name.trim();
+    }
 
-    const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true }).select('-password');
+    const user = await User.findByIdAndUpdate(req.user.id, updates, { returnDocument: 'after' }).select('-password');
     if (!user) return res.status(404).json({ errors: ['User not found'] });
     res.json(user);
   } catch (error) {
