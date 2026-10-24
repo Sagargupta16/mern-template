@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.1.1] - 2026-10-24
+
+- Client: bump `follow-redirects` to 1.16.1 (GHSA-8r9p-f939-6h3c, GHSA-q3jh-wrc6-jgq8) and dev-only `zod` to 4.6.7 (GHSA-mrhx-c7xc-m3w5)
+- Server: bump `body-parser` to 2.4.0 (GHSA-27r3-jxmh-p828), `nodemailer` to 10.2.1 (GHSA-8c8m-p3m8-cjg8, GHSA-m943-m63m-w62w, GHSA-85x2-q946-cp5h) and `ip-address` to 10.7.4 (GHSA-rxp7-6hxx-x8q5); lockfile-only, within existing ranges
+
 ## [2.1.0] - 2026-10-16
 
 - Add `GET /health` (no database access) and production static serving: with `NODE_ENV=production`, Express serves `client/dist` with an SPA fallback
